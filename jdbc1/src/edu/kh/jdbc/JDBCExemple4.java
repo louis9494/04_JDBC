@@ -1,92 +1,106 @@
 package edu.kh.jdbc;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
-public class JDBCExemple2 {
+public class JDBCExemple4 {
 	public static void main(String[] args) {
 		
-		// 입력 받은 급여보다 초과해서 받는 사원의 
-		// 사번, 이름, 급여 조회
+		// 부서명을 입력받아 
+		// 해당 부서에 근무하는 사원의
+		// 사번, 이름, 부서명, 직급명을
+		// 직급코드 오름차순으로 조회
 		
-		// 1. JDBC 객체 참조용 변수 선언
-		Connection conn = null; // DB연결정보 저장 객체
+		// hint : SQL 에서 문자열은 양쪽에 '' (홑따옴표) 필요
+		// 1. JDBC 객체 참조 변수 선언
+		Connection conn = null;
 		
+		Statement stmt = null;
 
-		Statement stmt = null; // SQL 수행, 결과 반환용 객체
-		
-
-		ResultSet rs = null; // SELECT 수행 결과 저장 객체
-		//2. DricerManager 객체를 이용해서 Connetion 객체 생성
-		
-		try {
-			// 2-1) Oracle JDBC Driver 객체 메모리 로드
+		ResultSet rs = null;
+	
+		try {	/* 2. DriverManager 객체를 이용해서 Connection  객체 생성하기 */
+			
+	
+			// 2-1 ) Oracle JDBC Driver 객체를 메모리에 로드(적재) 하기
 			Class.forName("oracle.jdbc.driver.OracleDriver");
 			
-			// 2-2) DB 연결 정보 작성
+			// 2-2 ) DB 연결 정보 작성
 			String type = "jdbc:oracle:thin:@"; // 드라이버의 종류
+			
 			String host = "localhost"; // DB 서버 컴퓨터의 IP 또는 도메인 주소
+			
 			String port = ":1521"; // 프로그램 연결을 위한 포트 번호
+			
 			String dbName = ":XE"; // DBMS 이름(XE == eXpress Edition)
-			// jdbc:oracle:thin:@localhost:1521:XE
 			
 			String userName = "kh_osh"; // 사용자 계정명
+			
 			String password = "kh1234"; // 계정 비밀번호
 			
-			// 2-3 )DB 연결 정보와 DriverManager 를 이용해서 Connection 객체 생성
 			conn = DriverManager.getConnection(type+host+port+dbName, 
-										userName, 
-										password);
-
+					userName, 
+					password);
 		
-			// 3. SQL 작성
-			// 입력받은 급여 -> Scanner 필요
-			// int input 여기에 급여 담기	
-			
-			// 입력 받은 급여보다 초과해서 받는 사원의 
-			// 사번, 이름, 급여 조회
 			Scanner sc = new Scanner(System.in);
+			System.out.println(" 부서명 입력 :  ");
+			String input = sc.nextLine();
 			
-			System.out.println("급여 입력 : ");
-			int input = sc.nextInt();
 			
-			String sql = "SELECT EMP_ID, EMP_NAME, SALARY " 
+			/*String sql = "SELECT EMP_ID, EMP_NAME, SALARY "
 					+ "FROM EMPLOYEE "
-					+ "WHERE SALARY >  "+ input;
+					+ "WHERE SALARY BETWEEN " + min + "AND " + " 5000000 "
+					+ "ORDER BY SALARY DESC";*/
+			String sql = """
+					SELECT 
+					EMP_NO, 
+					EMP_NAME,
+					NVL(DEPT_TITLE, '없음) DEPT_TITLE,
+					JOB_NAME
+					FROM EMPLOYEE
+					JOIN JOB USING(JOB_CODE)
+					LEFT JOIN  DEPARTMENT ON(DEPT_ID  = DEPT_CODE)
+					WHERE  DEPT_TITLE = 
+					'""" +  input + "' ORDER BY JOB_CODE";
 			// 4. Statement 객체 생성
 			stmt = conn.createStatement();
-			// 5. Statement 객체를 이용하여 SQL 수행 후 결과 반환 받기
-			// executeQuery() : select 실행, ResultSet 반환
-			// execoteUpdate() : DML 실행, 결과 행의 개수 반환(int)
+			
+			// 5. SQL 수행 후 결과 반환 받기
 			rs = stmt.executeQuery(sql);
 			// 6. 조회 결과가 담겨있는 ResultSet 을
 			// 커서 이용해 1행씩 접근해
 			// 각 행에 작성된 컬럼값 얻어오기
 			// -> while 안에서 꺼낸 데이터 출력
-			while(rs.next()) {
+
 			
+			boolean flag = true;
+			// 조회 결과 있다면 false, 없으면 true
+			
+			while(rs.next()) {
+				flag = false;
+				
 				String empId = rs.getString("EMP_ID");
 				String empName = rs.getString("EMP_NAME");
-				int salary = rs.getInt("SALARY");
+				String deptTitle = rs.getString("DEPT_TITLE");
+				String jobName = rs.getString("JOB_NAME");
+				
 
 				
-				System.out.printf( "%s / %s / %d원 \n",
-						empId,empName,salary);
-			}				
+				System.out.printf( "%s / %s / %s / %s \n",
+						empId, empName, deptTitle, jobName );
+			}	
 			
-		} catch (ClassNotFoundException e) {
-			System.out.println("해당 클래스를 찾을 수 없습니다");
-			e.printStackTrace();
-		} catch (SQLException e) {
-		e.printStackTrace();
-			
-		}
-		// 7. 사용 완료된 JDBC 객체 자원 반환(close)
+			if(flag) {
+				System.out.println("일치하는 부서가 없습니다!");
+			}
+
+		
+		} catch (Exception e) {
+			e.printStackTrace(); // 예외 추적
+		} 		// 7. 사용 완료된 JDBC 객체 자원 반환(close)
 		// -> 생성된 역순으로 close!
 			finally {
 			
@@ -111,4 +125,5 @@ public class JDBCExemple2 {
 			
 		}
 	}
+
 }
