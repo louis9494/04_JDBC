@@ -22,7 +22,7 @@ public class CreateXMLFile {
 			Scanner sc = new Scanner(System.in);
 			
 			// Properties 객체 생성
-			// * Properties는 K:V가 모두 String 으로 제한된 Map *
+			// * Properties는 K:V가 모두 String 으로 제한된 Map의 후손 클래스 *
 			Properties prop = new Properties();
 			
 			System.out.print("생성할 파일 이름 : ");

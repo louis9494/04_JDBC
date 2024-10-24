@@ -92,7 +92,7 @@ public class JDBCTemplate {
 			// jdbc:oracle:thin:@localhost:1521:XE
 			
 			String userName = prop.getProperty("userName");
-			// kh_cmh
+			// kh_osh
 			
 			String password = prop.getProperty("password");
 			// kh1234
